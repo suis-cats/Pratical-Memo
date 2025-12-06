@@ -9,58 +9,30 @@ import SwiftUI
 import SwiftData
 
 struct ContentView: View {
-    @Environment(\.modelContext) private var modelContext
-    @Query private var items: [Item]
+    @State private var selectedFolder: Folder?
+    @State private var selectedNote: Note?
+    @State private var visibility: NavigationSplitViewVisibility = .all
 
     var body: some View {
-        NavigationSplitView {
-            List {
-                ForEach(items) { item in
-                    NavigationLink {
-                        Text("Item at \(item.timestamp, format: Date.FormatStyle(date: .numeric, time: .standard))")
-                    } label: {
-                        Text(item.timestamp, format: Date.FormatStyle(date: .numeric, time: .standard))
-                    }
+        NavigationSplitView(columnVisibility: $visibility) {
+            SidebarView(selectedFolder: $selectedFolder)
+        } content: {
+            NoteListView(folder: selectedFolder, selectedNote: $selectedNote)
+                .navigationDestination(for: Note.self) { note in
+                    NoteDetailView(note: note)
                 }
-                .onDelete(perform: deleteItems)
-            }
-#if os(macOS)
-            .navigationSplitViewColumnWidth(min: 180, ideal: 200)
-#endif
-            .toolbar {
-#if os(iOS)
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    EditButton()
-                }
-#endif
-                ToolbarItem {
-                    Button(action: addItem) {
-                        Label("Add Item", systemImage: "plus")
-                    }
-                }
-            }
         } detail: {
-            Text("Select an item")
+            // Background view when no note is selected (iPad/Mac)
+            Text("Select a Note")
+                .font(.title)
+                .foregroundStyle(.secondary)
+                .liquidGlass(cornerRadius: 20, depth: 0.5)
         }
-    }
-
-    private func addItem() {
-        withAnimation {
-            let newItem = Item(timestamp: Date())
-            modelContext.insert(newItem)
-        }
-    }
-
-    private func deleteItems(offsets: IndexSet) {
-        withAnimation {
-            for index in offsets {
-                modelContext.delete(items[index])
-            }
-        }
+        .navigationSplitViewStyle(.balanced)
     }
 }
 
 #Preview {
     ContentView()
-        .modelContainer(for: Item.self, inMemory: true)
+        .modelContainer(for: [Folder.self, Note.self], inMemory: true)
 }
