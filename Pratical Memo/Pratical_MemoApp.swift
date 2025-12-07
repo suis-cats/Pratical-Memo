@@ -10,7 +10,7 @@ import SwiftData
 
 @main
 struct Pratical_MemoApp: App {
-    var sharedModelContainer: ModelContainer = {
+    static let sharedModelContainer: ModelContainer = {
         let schema = Schema([
             Folder.self,
             Note.self,
@@ -28,6 +28,6 @@ struct Pratical_MemoApp: App {
         WindowGroup {
             ContentView()
         }
-        .modelContainer(sharedModelContainer)
+        .modelContainer(Self.sharedModelContainer)
     }
 }

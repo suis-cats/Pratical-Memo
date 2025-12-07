@@ -9,24 +9,24 @@ import SwiftUI
 import SwiftData
 
 struct ContentView: View {
-    @State private var selectedFolder: Folder?
+    @State private var selectedFolder: SidebarSelection? = .all // Default to All
     @State private var selectedNote: Note?
-    @State private var visibility: NavigationSplitViewVisibility = .all
 
     var body: some View {
-        NavigationSplitView(columnVisibility: $visibility) {
-            SidebarView(selectedFolder: $selectedFolder)
+        NavigationSplitView {
+            SidebarView(selection: $selectedFolder)
         } content: {
-            NoteListView(folder: selectedFolder, selectedNote: $selectedNote)
-                .navigationDestination(for: Note.self) { note in
-                    NoteDetailView(note: note)
-                }
+            NoteListView(selection: selectedFolder, selectedNote: $selectedNote)
         } detail: {
-            // Background view when no note is selected (iPad/Mac)
-            Text("Select a Note")
-                .font(.title)
-                .foregroundStyle(.secondary)
-                .liquidGlass(cornerRadius: 20, depth: 0.5)
+            if let note = selectedNote {
+                NoteDetailView(note: note, selectedNote: $selectedNote)
+                    .id(note.id) // Force refresh if note changes
+            } else {
+                Text("Select a Note")
+                    .font(.title)
+                    .foregroundStyle(.secondary)
+                    .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 20))
+            }
         }
         .navigationSplitViewStyle(.balanced)
     }
